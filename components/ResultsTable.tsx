@@ -1,19 +1,22 @@
 import React from 'react';
-import { StudentData } from '../types';
-import { CSV_HEADERS, MAJORS, PROVINCES, HIGH_SCHOOLS } from '../constants';
+import { StudentData, DropdownData } from '../types';
+import { CSV_HEADERS } from '../constants';
 
 interface ResultsTableProps {
   data: StudentData[];
   setData: (data: StudentData[]) => void;
+  dropdownData: DropdownData;
 }
 
-export const ResultsTable: React.FC<ResultsTableProps> = ({ data, setData }) => {
+export const ResultsTable: React.FC<ResultsTableProps> = ({ data, setData, dropdownData }) => {
   const handleInputChange = (id: string, field: keyof Omit<StudentData, 'id'>, value: string) => {
     const updatedData = data.map((row) =>
       row.id === id ? { ...row, [field]: value } : row
     );
     setData(updatedData);
   };
+
+  const { majors, provinces, highSchools } = dropdownData;
 
   return (
     <div className="overflow-x-auto rounded-lg">
@@ -35,20 +38,20 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({ data, setData }) => 
               <td className="px-4 py-2"><input type="text" value={row.diaChi} onChange={(e) => handleInputChange(row.id, 'diaChi', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
               <td className="px-4 py-2">
                   <select value={row.nganhDangKy} onChange={(e) => handleInputChange(row.id, 'nganhDangKy', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {!MAJORS.includes(row.nganhDangKy) && <option value={row.nganhDangKy}>{row.nganhDangKy}</option>}
-                      {MAJORS.map(m => <option key={m} value={m}>{m}</option>)}
+                      {row.nganhDangKy && !majors.includes(row.nganhDangKy) && <option value={row.nganhDangKy}>{row.nganhDangKy} (Custom)</option>}
+                      {majors.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
               </td>
               <td className="px-4 py-2">
                   <select value={row.tinhThanhPho} onChange={(e) => handleInputChange(row.id, 'tinhThanhPho', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {!PROVINCES.includes(row.tinhThanhPho) && <option value={row.tinhThanhPho}>{row.tinhThanhPho}</option>}
-                      {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                      {row.tinhThanhPho && !provinces.includes(row.tinhThanhPho) && <option value={row.tinhThanhPho}>{row.tinhThanhPho} (Custom)</option>}
+                      {provinces.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
               </td>
               <td className="px-4 py-2">
                   <select value={row.truongThpt} onChange={(e) => handleInputChange(row.id, 'truongThpt', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {!HIGH_SCHOOLS.includes(row.truongThpt) && <option value={row.truongThpt}>{row.truongThpt}</option>}
-                      {HIGH_SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {row.truongThpt && !highSchools.includes(row.truongThpt) && <option value={row.truongThpt}>{row.truongThpt} (Custom)</option>}
+                      {highSchools.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
               </td>
             </tr>
