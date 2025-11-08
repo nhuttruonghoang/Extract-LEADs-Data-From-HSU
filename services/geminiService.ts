@@ -8,43 +8,42 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-const studentSchema = {
+const studentDataSchema = {
   type: Type.OBJECT,
   properties: {
-    ngaySinh: { type: Type.STRING, description: 'Date of birth in DD-MM-YYYY format.' },
-    soDienThoai: { type: Type.STRING, description: 'Phone number.' },
-    cccd: { type: Type.STRING, description: 'Citizen Identity Card number (CCCD).' },
-    email: { type: Type.STRING, description: 'Email address.' },
-    diaChi: { type: Type.STRING, description: 'Receiving address.' },
-    nganhDangKy: { type: Type.STRING, description: 'The registered major/field of study.' },
-    tinhThanhPho: { type: Type.STRING, description: 'The province or city of the high school.' },
-    truongThpt: { type: Type.STRING, description: 'The name of the high school in 12th grade.' },
+    fullName: { type: Type.STRING, description: 'Họ và tên' },
+    dateOfBirth: { type: Type.STRING, description: 'Ngày / tháng / năm sinh in DD/MM/YYYY format.' },
+    phoneNumber: { type: Type.STRING, description: 'Số điện thoại' },
+    idCardNumber: { type: Type.STRING, description: 'CCCD. Use empty string if blank.' },
+    email: { type: Type.STRING, description: 'Email nhận kết quả' },
+    address: { type: Type.STRING, description: 'Địa chỉ nhận kết quả. Use empty string if blank.' },
+    major: { type: Type.STRING, description: 'Ngành đăng ký xét tuyển' },
+    highSchoolProvince: { type: Type.STRING, description: 'Tên Tỉnh/TP trường THPT' },
+    highSchoolName: { type: Type.STRING, description: 'Tên trường THPT lớp 12' },
   },
-  required: ['ngaySinh', 'soDienThoai', 'cccd', 'email', 'diaChi', 'nganhDangKy', 'tinhThanhPho', 'truongThpt'],
+  required: ['fullName', 'dateOfBirth', 'phoneNumber', 'email', 'major', 'highSchoolProvince', 'highSchoolName'],
 };
 
 const responseSchema = {
-  type: Type.ARRAY,
-  items: studentSchema,
+    type: Type.ARRAY,
+    items: studentDataSchema,
 };
 
-const PROMPT = `You are an expert OCR system specializing in Vietnamese school registration forms. Your task is to analyze the provided image(s) and extract the key information for each student listed.
+const PROMPT = `You are an expert OCR system for Vietnamese student application forms. Analyze the provided image and extract the student's information.
 
 Instructions:
-1.  Carefully scan the entire document.
-2.  Identify all distinct student registration entries.
-3.  For each entry, extract the following fields:
-    *   'Ngày / tháng / năm sinh': The student's date of birth. Format it strictly as DD-MM-YYYY.
-    *   'Số điện thoại': The student's phone number.
-    *   'CCCD': The student's Citizen Identity Card number.
-    *   'Email nhận kết quả': The student's email address.
-    *   'Địa chỉ nhận kết quả': The full address for receiving results.
-    *   'Ngành đăng ký xét tuyển': The major or field of study the student is applying for.
-    *   'Tên Tỉnh/TP trường THPT': The province or city where the high school is located.
-    *   'Tên trường THPT lớp 12': The name of the high school the student attended in 12th grade.
-4.  Ignore any general headers, footers, page numbers, or text that is not part of a student's data.
-5.  If a specific field for a student is not found or is unreadable, use an empty string "" for that field's value.
-6.  Return the extracted data as a JSON array, where each object in the array represents one student. Adhere strictly to the provided JSON schema.`;
+1. Identify the label for each piece of information on the left and its corresponding value on the right.
+2. Extract the following fields:
+    - 'Họ và tên': Full name of the student.
+    - 'Ngày / tháng / năm sinh': Date of birth. Format as DD/MM/YYYY.
+    - 'Số điện thoại': Phone number.
+    - 'CCCD': Citizen Identity Card number. If blank, use an empty string.
+    - 'Email nhận kết quả': The student's email address.
+    - 'Địa chỉ nhận kết quả': The address to receive results. If blank, use an empty string.
+    - 'Ngành đăng ký xét tuyển': The major the student is applying for.
+    - 'Tên Tỉnh/TP trường THPT': The province or city of the high school.
+    - 'Tên trường THPT lớp 12': The name of the high school.
+3. Return the extracted data as a JSON array containing a single object for the student. Adhere strictly to the provided JSON schema. If a non-required field is not found, use an empty string "".`;
 
 export const extractStudentDataFromImages = async (
   imageParts: { mimeType: string, data: string }[]
@@ -54,8 +53,6 @@ export const extractStudentDataFromImages = async (
   }
 
   try {
-    // FIX: The Gemini API expects image data to be in a specific format.
-    // Each image part must be an object with an `inlineData` key.
     const formattedImageParts = imageParts.map(part => ({
       inlineData: {
         mimeType: part.mimeType,
@@ -78,11 +75,16 @@ export const extractStudentDataFromImages = async (
     if (!jsonText) {
         return [];
     }
-
-    const parsedData = JSON.parse(jsonText);
+    
+    // The API might return a single object instead of an array if only one is found.
+    // Standardize to an array.
+    let parsedData = JSON.parse(jsonText);
+    if (!Array.isArray(parsedData)) {
+        parsedData = [parsedData];
+    }
     return parsedData as Omit<StudentData, 'id'>[];
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to extract data from the document. The document might not be a valid registration form or there was an API issue.");
+    throw new Error("Failed to extract data from the document. Please ensure it's a valid student application form and try again.");
   }
 };

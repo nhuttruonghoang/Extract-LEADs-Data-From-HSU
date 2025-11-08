@@ -1,13 +1,28 @@
 export const CSV_HEADERS = [
-  'Ngày sinh',
+  'Họ và tên',
+  'Ngày / tháng / năm sinh',
   'Số điện thoại',
   'CCCD',
-  'Email',
-  'Địa chỉ',
-  'Ngành đăng ký',
-  'Tỉnh/Thành phố',
-  'Trường THPT',
+  'Email nhận kết quả',
+  'Địa chỉ nhận kết quả',
+  'Ngành đăng ký xét tuyển',
+  'Tên Tỉnh/TP trường THPT',
+  'Tên trường THPT lớp 12',
 ];
 
-export const ELECTIVE_SUBJECTS = ['Vật lý', 'Hóa học', 'Sinh học', 'Lịch sử', 'Địa lý', 'GDCD'];
-export const COMPETENCY_EXAMS = ['Đánh giá năng lực ĐHQG TPHCM', 'Đánh giá năng lực ĐHQG Hà Nội'];
+// FIX: Add missing constant definitions to resolve compilation errors.
+export const ELECTIVE_SUBJECTS = [
+    'Vật lý',
+    'Hóa học',
+    'Sinh học',
+    'Lịch sử',
+    'Địa lý',
+    'Giáo dục công dân',
+    'Tiếng Anh',
+];
+
+export const COMPETENCY_EXAMS = [
+    'ĐHQG TPHCM',
+    'ĐHQG Hà Nội',
+    'Đại học Bách Khoa Hà Nội'
+];

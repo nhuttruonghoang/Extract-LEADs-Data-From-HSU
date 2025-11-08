@@ -10,7 +10,7 @@ import { Spinner } from './Spinner';
 interface AcademicResultsFormProps {
     onBack: () => void;
     initialData: StudentData[] | null;
-    onSubmitSuccess: () => void;
+    onSubmitSuccess: (sql: string) => void;
     onError: (message: string) => void;
 }
 
@@ -94,8 +94,8 @@ export const AcademicResultsForm: React.FC<AcademicResultsFormProps> = ({ onBack
         onError(""); // Clear previous errors
         
         try {
-            await saveAllData(initialData, formData);
-            onSubmitSuccess();
+            const generatedSql = await saveAllData(initialData, formData);
+            onSubmitSuccess(generatedSql);
         } catch (error: any) {
             console.error("Submission failed:", error);
             onError(error.message || "An unknown error occurred while saving the data.");

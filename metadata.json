@@ -1,6 +1,6 @@
 {
-  "name": "HSU Leads OCR Tool",
-  "description": "An application to extract HSU lead information from registration forms using Gemini. Upload an image or PDF, and the tool will parse the data into an editable CSV-ready table.",
+  "name": "Student Application OCR Tool",
+  "description": "An application to extract student data from application forms using Gemini. Upload an image or PDF of the form to parse the data into an editable format.",
   "requestFramePermissions": [
     "camera"
   ]

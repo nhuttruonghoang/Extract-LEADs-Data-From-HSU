@@ -1,15 +1,18 @@
 export interface StudentData {
   id: string;
-  ngaySinh: string;
-  soDienThoai: string;
-  cccd: string;
+  fullName: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  idCardNumber: string;
   email: string;
-  diaChi: string;
-  nganhDangKy: string;
-  tinhThanhPho: string;
-  truongThpt: string;
+  address: string;
+  major: string;
+  highSchoolProvince: string;
+  highSchoolName: string;
 }
 
+
+// FIX: Add missing type definitions to resolve compilation errors.
 export interface DropdownData {
   majors: string[];
   provinces: string[];

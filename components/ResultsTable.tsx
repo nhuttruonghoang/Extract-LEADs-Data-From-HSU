@@ -1,63 +1,52 @@
 import React from 'react';
-import { StudentData, DropdownData } from '../types';
-import { CSV_HEADERS } from '../constants';
+import { StudentData } from '../types';
 
 interface ResultsTableProps {
   data: StudentData[];
   setData: (data: StudentData[]) => void;
-  dropdownData: DropdownData;
 }
 
-export const ResultsTable: React.FC<ResultsTableProps> = ({ data, setData, dropdownData }) => {
-  const handleInputChange = (id: string, field: keyof Omit<StudentData, 'id'>, value: string) => {
-    const updatedData = data.map((row) =>
-      row.id === id ? { ...row, [field]: value } : row
-    );
-    setData(updatedData);
+const fieldLabels: Record<keyof Omit<StudentData, 'id'>, string> = {
+  fullName: 'Họ và tên',
+  dateOfBirth: 'Ngày / tháng / năm sinh',
+  phoneNumber: 'Số điện thoại',
+  idCardNumber: 'CCCD',
+  email: 'Email nhận kết quả',
+  address: 'Địa chỉ nhận kết quả',
+  major: 'Ngành đăng ký xét tuyển',
+  highSchoolProvince: 'Tên Tỉnh/TP trường THPT',
+  highSchoolName: 'Tên trường THPT lớp 12',
+};
+
+export const ResultsTable: React.FC<ResultsTableProps> = ({ data, setData }) => {
+  const student = data?.[0];
+
+  const handleInputChange = (field: keyof Omit<StudentData, 'id'>, value: string) => {
+    if (!student) return;
+    const updatedStudent = { ...student, [field]: value };
+    setData([updatedStudent]);
   };
 
-  const { majors, provinces, highSchools } = dropdownData;
+  if (!student) {
+    return <p className="text-center text-gray-400">No student data to display.</p>;
+  }
 
   return (
-    <div className="overflow-x-auto rounded-lg">
-      <table className="w-full text-sm text-left text-gray-300">
-        <thead className="text-xs text-gray-200 uppercase bg-gray-700">
-          <tr>
-            {CSV_HEADERS.map(header => (
-              <th key={header} scope="col" className="px-4 py-3 whitespace-nowrap">{header}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row) => (
-            <tr key={row.id} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-700/50">
-              <td className="px-4 py-2"><input type="text" value={row.ngaySinh} onChange={(e) => handleInputChange(row.id, 'ngaySinh', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
-              <td className="px-4 py-2"><input type="text" value={row.soDienThoai} onChange={(e) => handleInputChange(row.id, 'soDienThoai', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
-              <td className="px-4 py-2"><input type="text" value={row.cccd} onChange={(e) => handleInputChange(row.id, 'cccd', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
-              <td className="px-4 py-2"><input type="email" value={row.email} onChange={(e) => handleInputChange(row.id, 'email', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
-              <td className="px-4 py-2"><input type="text" value={row.diaChi} onChange={(e) => handleInputChange(row.id, 'diaChi', e.target.value)} className="w-full bg-transparent p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"/></td>
-              <td className="px-4 py-2">
-                  <select value={row.nganhDangKy} onChange={(e) => handleInputChange(row.id, 'nganhDangKy', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {row.nganhDangKy && !majors.includes(row.nganhDangKy) && <option value={row.nganhDangKy}>{row.nganhDangKy} (Custom)</option>}
-                      {majors.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-              </td>
-              <td className="px-4 py-2">
-                  <select value={row.tinhThanhPho} onChange={(e) => handleInputChange(row.id, 'tinhThanhPho', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {row.tinhThanhPho && !provinces.includes(row.tinhThanhPho) && <option value={row.tinhThanhPho}>{row.tinhThanhPho} (Custom)</option>}
-                      {provinces.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-              </td>
-              <td className="px-4 py-2">
-                  <select value={row.truongThpt} onChange={(e) => handleInputChange(row.id, 'truongThpt', e.target.value)} className="w-full bg-gray-800 p-1 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                      {row.truongThpt && !highSchools.includes(row.truongThpt) && <option value={row.truongThpt}>{row.truongThpt} (Custom)</option>}
-                      {highSchools.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-4 max-w-lg mx-auto">
+      {(Object.keys(fieldLabels) as Array<keyof typeof fieldLabels>).map((field) => (
+        <div key={field} className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4 items-center">
+          <label htmlFor={field} className="text-sm font-medium text-gray-300 md:text-right">
+            {fieldLabels[field]}
+          </label>
+          <input
+            id={field}
+            type="text"
+            value={student[field]}
+            onChange={(e) => handleInputChange(field, e.target.value)}
+            className="md:col-span-2 w-full bg-gray-700 p-2 rounded-md border border-gray-600 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      ))}
     </div>
   );
 };
