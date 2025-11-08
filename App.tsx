@@ -6,6 +6,7 @@ import { ResultsTable } from './components/ResultsTable';
 import { Spinner } from './components/Spinner';
 import { CsvIcon } from './components/icons/CsvIcon';
 import { ErrorModal } from './components/ErrorModal';
+import { SuccessModal } from './components/SuccessModal';
 import { AcademicResultsForm } from './components/AcademicResultsForm';
 import { ArrowRightIcon } from './components/icons/ArrowRightIcon';
 
@@ -14,12 +15,14 @@ import { extractStudentDataFromImages } from './services/geminiService';
 import { fetchDropdownData } from './services/dataService';
 import { StudentData, DropdownData } from './types';
 import { CSV_HEADERS } from './constants';
+import { saveAllData } from './services/apiService';
 
 function App() {
   const [files, setFiles] = useState<File[] | null>(null);
   const [studentData, setStudentData] = useState<StudentData[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [dropdownData, setDropdownData] = useState<DropdownData>({ majors: [], provinces: [], highSchools: [] });
   const [step, setStep] = useState(1);
 
@@ -95,6 +98,7 @@ function App() {
     setStudentData(null);
     setError(null);
     setIsLoading(false);
+    setShowSuccess(false);
     setStep(1);
   };
 
@@ -104,6 +108,10 @@ function App() {
 
   const handleBack = () => {
     setStep(1);
+  };
+
+  const handleSubmitSuccess = () => {
+    setShowSuccess(true);
   };
   
   return (
@@ -170,12 +178,23 @@ function App() {
             )}
 
             {step === 2 && (
-              <AcademicResultsForm onBack={handleBack} initialData={studentData} />
+              <AcademicResultsForm 
+                onBack={handleBack} 
+                initialData={studentData}
+                onSubmitSuccess={handleSubmitSuccess}
+                onError={(msg) => setError(msg)}
+              />
             )}
           </div>
         </div>
       </main>
       <ErrorModal message={error || ''} onClose={() => setError(null)} />
+      <SuccessModal 
+        show={showSuccess}
+        onClose={handleReset}
+        title="Submission Successful"
+        message="All student data has been saved to the database."
+      />
     </div>
   );
 }

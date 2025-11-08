@@ -4,10 +4,14 @@ import { ELECTIVE_SUBJECTS, COMPETENCY_EXAMS } from '../constants';
 import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 import { UploadIcon } from './icons/UploadIcon';
 import { FileIcon } from './icons/FileIcon';
+import { saveAllData } from '../services/apiService';
+import { Spinner } from './Spinner';
 
 interface AcademicResultsFormProps {
     onBack: () => void;
     initialData: StudentData[] | null;
+    onSubmitSuccess: () => void;
+    onError: (message: string) => void;
 }
 
 const initialAcademicData: AcademicData = {
@@ -57,8 +61,9 @@ const FileInput: React.FC<{ id: string; file: File | null; onChange: (e: React.C
     </div>
 );
 
-export const AcademicResultsForm: React.FC<AcademicResultsFormProps> = ({ onBack, initialData }) => {
+export const AcademicResultsForm: React.FC<AcademicResultsFormProps> = ({ onBack, initialData, onSubmitSuccess, onError }) => {
     const [formData, setFormData] = useState<AcademicData>(initialAcademicData);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleTranscriptChange = (
         semester: keyof Pick<AcademicData, 'transcript_hk2_10' | 'transcript_hk1_11' | 'transcript_hk2_11'>,
@@ -78,10 +83,25 @@ export const AcademicResultsForm: React.FC<AcademicResultsFormProps> = ({ onBack
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Form Submitted", { studentData: initialData, academicData: formData });
-        alert("Academic data submitted! Check the console for the data object.");
+        if (!initialData || initialData.length === 0) {
+            onError("No student data available to submit.");
+            return;
+        }
+        
+        setIsSubmitting(true);
+        onError(""); // Clear previous errors
+        
+        try {
+            await saveAllData(initialData, formData);
+            onSubmitSuccess();
+        } catch (error: any) {
+            console.error("Submission failed:", error);
+            onError(error.message || "An unknown error occurred while saving the data.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const renderScoreInput = (value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void) => (
@@ -198,16 +218,18 @@ export const AcademicResultsForm: React.FC<AcademicResultsFormProps> = ({ onBack
                 <button
                     type="button"
                     onClick={onBack}
-                    className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <ArrowLeftIcon className="w-5 h-5" />
                     Back
                 </button>
                 <button
                     type="submit"
-                    className="bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold py-2 px-8 rounded-lg transition-all transform hover:scale-105"
+                    disabled={isSubmitting}
+                    className="flex items-center justify-center w-40 bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white font-bold py-2 px-8 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Submit Data
+                    {isSubmitting ? <Spinner /> : 'Submit Data'}
                 </button>
             </div>
         </form>
